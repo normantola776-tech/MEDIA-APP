@@ -346,6 +346,12 @@ export const VideoFeed: React.FC<VideoFeedProps> = ({
                     trimStart={video.trimStart}
                     trimEnd={video.trimEnd}
                     duration={video.duration}
+                    playbackSpeed={video.playbackSpeed}
+                    clipVolume={video.clipVolume}
+                    bgMusicVolume={video.bgMusicVolume}
+                    customAudioUrl={video.customAudioUrl}
+                    transitionEffect={video.transitionEffect}
+                    transitionDuration={video.transitionDuration}
                     onDoubleTapLike={() => {
                       if (!currentUser) {
                         onRequireAuth('Log in to like videos.');

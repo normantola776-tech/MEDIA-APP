@@ -24,9 +24,22 @@ import {
   DollarSign,
   Gift,
   Coins,
+  Camera,
+  Upload,
 } from 'lucide-react';
 import { User, Video } from '../types';
 import { CanvasVideoPlayer } from './CanvasVideoPlayer';
+
+const AVATAR_PRESETS = [
+  'https://api.dicebear.com/9.x/avataaars/svg?seed=StarCreator1&backgroundColor=8b5cf6',
+  'https://api.dicebear.com/9.x/avataaars/svg?seed=StarCreator2&backgroundColor=ff2d75',
+  'https://api.dicebear.com/9.x/avataaars/svg?seed=StarCreator3&backgroundColor=0ea5e9',
+  'https://api.dicebear.com/9.x/avataaars/svg?seed=StarCreator4&backgroundColor=10b981',
+  'https://api.dicebear.com/9.x/avataaars/svg?seed=StarCreator5&backgroundColor=f59e0b',
+  'https://api.dicebear.com/9.x/avataaars/svg?seed=AlexNova&backgroundColor=6366f1',
+  'https://api.dicebear.com/9.x/avataaars/svg?seed=MiaKinetics&backgroundColor=ec4899',
+  'https://api.dicebear.com/9.x/avataaars/svg?seed=KampalaRhythm&backgroundColor=14b8a6',
+];
 
 interface ProfileViewProps {
   profileUser: User;
@@ -79,6 +92,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const [editDisplayName, setEditDisplayName] = useState(profileUser.displayName);
   const [editUsername, setEditUsername] = useState(profileUser.username);
   const [editBio, setEditBio] = useState(profileUser.bio);
+  const [editAvatar, setEditAvatar] = useState(profileUser.avatar);
+  const avatarFileInputRef = useRef<HTMLInputElement | null>(null);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -104,12 +119,13 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
     onUpdateProfile({
+      avatar: editAvatar,
       displayName: editDisplayName.trim() || profileUser.displayName,
       username: editUsername.trim().toLowerCase().replace(/[^a-z0-9_]/g, '') || profileUser.username,
       bio: editBio.trim(),
     });
     setEditModalOpen(false);
-    showToast('Profile updated!');
+    showToast('Profile and avatar updated!');
   };
 
   return (
@@ -124,13 +140,23 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         {/* Profile Card */}
         <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#151515] border border-slate-200 dark:border-white/10 shadow-sm">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-            <div className="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-[#8B5CF6] to-[#FF2D75] shrink-0">
+            <div className="relative w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-[#8B5CF6] to-[#FF2D75] shrink-0 group">
               <img
                 src={profileUser.avatar}
                 alt={profileUser.displayName}
                 referrerPolicy="no-referrer"
                 className="w-full h-full rounded-full object-cover bg-[#080808]"
               />
+              {isOwnProfile && (
+                <button
+                  type="button"
+                  onClick={() => setEditModalOpen(true)}
+                  className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-gradient-to-r from-[#8B5CF6] to-[#FF2D75] text-white flex items-center justify-center shadow-lg border-2 border-white dark:border-[#151515] cursor-pointer hover:scale-110 transition-transform"
+                  title="Change profile avatar"
+                >
+                  <Camera className="w-4 h-4" />
+                </button>
+              )}
             </div>
 
             <div className="flex-1 text-center sm:text-left min-w-0">
@@ -331,6 +357,93 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           <div className="w-full max-w-md rounded-3xl bg-white dark:bg-[#151515] border border-slate-200 dark:border-white/10 p-6 text-slate-900 dark:text-white shadow-2xl">
             <h3 className="font-display font-bold text-lg mb-4">Edit Profile</h3>
             <form onSubmit={handleSaveProfile} className="space-y-4">
+              {/* Profile Photo / Avatar Editor */}
+              <div>
+                <label className="block text-xs font-semibold mb-2">Profile Photo / Avatar</label>
+                <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-50 dark:bg-[#0c0c0c] border border-slate-200 dark:border-white/10">
+                  <div className="relative w-14 h-14 rounded-full p-0.5 bg-gradient-to-tr from-[#8B5CF6] to-[#FF2D75] shrink-0">
+                    <img
+                      src={editAvatar}
+                      alt="Avatar Preview"
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full rounded-full object-cover bg-black"
+                    />
+                  </div>
+
+                  <div className="flex-1 space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => avatarFileInputRef.current?.click()}
+                        className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#8B5CF6] to-[#FF2D75] text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm cursor-pointer"
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>Upload Photo</span>
+                      </button>
+                      <input
+                        ref={avatarFileInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (ev) => {
+                              if (ev.target?.result) {
+                                setEditAvatar(ev.target.result as string);
+                              }
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const randomSeed = Math.random().toString(36).slice(2, 8);
+                          setEditAvatar(`https://api.dicebear.com/9.x/avataaars/svg?seed=${randomSeed}&backgroundColor=8b5cf6`);
+                        }}
+                        className="px-2.5 py-1.5 rounded-xl bg-slate-200 dark:bg-white/10 text-xs font-semibold text-slate-700 dark:text-zinc-300 hover:bg-slate-300 dark:hover:bg-white/20 cursor-pointer"
+                        title="Generate random creator avatar"
+                      >
+                        🎲 Random
+                      </button>
+                    </div>
+                    <span className="text-[10px] text-slate-500 dark:text-zinc-400 block">
+                      PNG, JPG, WebP or SVG format supported.
+                    </span>
+                  </div>
+                </div>
+
+                {/* Avatar Presets Grid */}
+                <div className="mt-2.5">
+                  <span className="text-[11px] font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">
+                    Or choose from Creator Avatar Presets:
+                  </span>
+                  <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                    {AVATAR_PRESETS.map((preset, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setEditAvatar(preset)}
+                        className={`w-9 h-9 rounded-full p-0.5 shrink-0 transition-transform cursor-pointer ${
+                          editAvatar === preset
+                            ? 'ring-2 ring-[#FF2D75] scale-110'
+                            : 'opacity-70 hover:opacity-100 hover:scale-105'
+                        }`}
+                      >
+                        <img
+                          src={preset}
+                          alt={`Preset ${idx + 1}`}
+                          className="w-full h-full rounded-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-xs font-semibold mb-1">Display Name</label>
                 <input
@@ -425,6 +538,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               trimStart={selectedVideo.trimStart}
               trimEnd={selectedVideo.trimEnd}
               duration={selectedVideo.duration}
+              playbackSpeed={selectedVideo.playbackSpeed}
+              clipVolume={selectedVideo.clipVolume}
+              bgMusicVolume={selectedVideo.bgMusicVolume}
+              customAudioUrl={selectedVideo.customAudioUrl}
+              transitionEffect={selectedVideo.transitionEffect}
+              transitionDuration={selectedVideo.transitionDuration}
             />
             <button
               onClick={() => setSelectedVideo(null)}

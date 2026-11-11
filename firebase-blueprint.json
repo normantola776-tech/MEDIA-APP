@@ -1,0 +1,151 @@
+{
+  "entities": {
+    "user": {
+      "title": "User",
+      "description": "User profile and creator account",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique user ID matching auth UID" },
+        "username": { "type": "string", "description": "Unique handle without @" },
+        "displayName": { "type": "string", "description": "Display name" },
+        "email": { "type": "string", "description": "User email address" },
+        "avatar": { "type": "string", "description": "Avatar image URL" },
+        "bio": { "type": "string", "description": "User biography" },
+        "createdAt": { "type": "string", "description": "Creation timestamp" },
+        "verified": { "type": "boolean", "description": "Whether user is verified" },
+        "role": { "type": "string", "enum": ["viewer", "creator", "verified_creator", "admin"], "description": "User role" },
+        "canGoLive": { "type": "boolean", "description": "Live streaming permission" },
+        "coinBalance": { "type": "number", "description": "Virtual coins balance" },
+        "region": { "type": "string", "description": "Creator geographic region" },
+        "followers": { "type": "array", "description": "Array of follower user IDs" },
+        "following": { "type": "array", "description": "Array of following user IDs" },
+        "blockedUsers": { "type": "array", "description": "Array of blocked user IDs" },
+        "online": { "type": "boolean", "description": "Current presence state" }
+      },
+      "required": ["id", "username", "displayName", "email"]
+    },
+    "video": {
+      "title": "Video",
+      "description": "Short-form video clip",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique video ID" },
+        "creatorId": { "type": "string", "description": "UID of the creator" },
+        "caption": { "type": "string", "description": "Video caption" },
+        "hashtags": { "type": "array", "description": "Hashtags list" },
+        "mentions": { "type": "array", "description": "Mentioned usernames" },
+        "category": { "type": "string", "description": "Video category" },
+        "region": { "type": "string", "description": "Geographic tag" },
+        "soundId": { "type": "string", "description": "Audio track ID" },
+        "soundTitle": { "type": "string", "description": "Audio track title" },
+        "soundArtist": { "type": "string", "description": "Audio track artist" },
+        "sceneType": { "type": "string", "description": "Visual scene backdrop" },
+        "videoUrl": { "type": "string", "description": "Video asset URL" },
+        "thumbnailColor": { "type": "string", "description": "Preview accent color" },
+        "filter": { "type": "string", "description": "Visual filter type" },
+        "trimStart": { "type": "number", "description": "Trim start in seconds" },
+        "trimEnd": { "type": "number", "description": "Trim end in seconds" },
+        "duration": { "type": "number", "description": "Clip duration in seconds" },
+        "visibility": { "type": "string", "enum": ["public", "followers", "private", "subscribers_only"], "description": "Privacy visibility" },
+        "likes": { "type": "array", "description": "User IDs who liked" },
+        "saves": { "type": "array", "description": "User IDs who bookmarked" },
+        "views": { "type": "number", "description": "View counter" },
+        "shares": { "type": "number", "description": "Share counter" },
+        "commentsCount": { "type": "number", "description": "Comments count" },
+        "createdAt": { "type": "string", "description": "Creation timestamp" }
+      },
+      "required": ["id", "creatorId", "caption", "category", "visibility"]
+    },
+    "comment": {
+      "title": "Comment",
+      "description": "User comment on a video",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Comment ID" },
+        "videoId": { "type": "string", "description": "Target video ID" },
+        "userId": { "type": "string", "description": "Author UID" },
+        "text": { "type": "string", "description": "Comment body" },
+        "likes": { "type": "array", "description": "Array of user IDs who liked" },
+        "replies": { "type": "array", "description": "Threaded replies" },
+        "createdAt": { "type": "string", "description": "Creation timestamp" }
+      },
+      "required": ["id", "videoId", "userId", "text"]
+    },
+    "directMessage": {
+      "title": "DirectMessage",
+      "description": "Direct message between users",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Message ID" },
+        "senderId": { "type": "string", "description": "Sender UID" },
+        "recipientId": { "type": "string", "description": "Recipient UID" },
+        "text": { "type": "string", "description": "Message text" },
+        "read": { "type": "boolean", "description": "Read receipt" },
+        "createdAt": { "type": "string", "description": "Creation timestamp" }
+      },
+      "required": ["id", "senderId", "recipientId", "text"]
+    },
+    "draftVideo": {
+      "title": "DraftVideo",
+      "description": "Saved creator video draft",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Draft ID" },
+        "creatorId": { "type": "string", "description": "Creator UID" },
+        "caption": { "type": "string", "description": "Draft caption" },
+        "hashtags": { "type": "array", "description": "Draft hashtags" },
+        "category": { "type": "string", "description": "Category" },
+        "soundId": { "type": "string", "description": "Sound ID" },
+        "sceneType": { "type": "string", "description": "Scene type" },
+        "videoUrl": { "type": "string", "description": "Video URL" },
+        "filter": { "type": "string", "description": "Filter" },
+        "trimStart": { "type": "number", "description": "Trim start" },
+        "trimEnd": { "type": "number", "description": "Trim end" },
+        "visibility": { "type": "string", "description": "Visibility" },
+        "updatedAt": { "type": "string", "description": "Last updated timestamp" }
+      },
+      "required": ["id", "creatorId"]
+    },
+    "liveStream": {
+      "title": "LiveStream",
+      "description": "Active or past live stream session",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Stream session ID" },
+        "creatorId": { "type": "string", "description": "Broadcaster UID" },
+        "title": { "type": "string", "description": "Stream title" },
+        "viewerCount": { "type": "number", "description": "Live viewer count" },
+        "isLive": { "type": "boolean", "description": "Broadcast active status" },
+        "category": { "type": "string", "description": "Stream category" },
+        "createdAt": { "type": "string", "description": "Start timestamp" }
+      },
+      "required": ["id", "creatorId", "title", "isLive"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/user" },
+      "description": "User profiles and public accounts"
+    },
+    "/videos/{videoId}": {
+      "schema": { "$ref": "#/entities/video" },
+      "description": "Short-form video clips"
+    },
+    "/comments/{commentId}": {
+      "schema": { "$ref": "#/entities/comment" },
+      "description": "Video discussions and comments"
+    },
+    "/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/directMessage" },
+      "description": "Direct chat messages"
+    },
+    "/drafts/{draftId}": {
+      "schema": { "$ref": "#/entities/draftVideo" },
+      "description": "Creator studio saved video drafts"
+    },
+    "/liveStreams/{streamId}": {
+      "schema": { "$ref": "#/entities/liveStream" },
+      "description": "Live video broadcast sessions"
+    }
+  }
+}

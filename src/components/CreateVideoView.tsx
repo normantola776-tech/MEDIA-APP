@@ -30,14 +30,26 @@ import {
   Move,
   ShieldCheck,
   Award,
+  Volume2,
+  VolumeX,
+  Gauge,
+  Zap,
+  FastForward,
+  Radio,
+  FileAudio,
+  Disc,
+  ArrowRightLeft,
+  Sliders as SlidersVertical,
 } from 'lucide-react';
 import {
   DraftVideo,
+  SoundEffectItem,
   SoundTrack,
   User,
   Video,
   VideoFilterType,
   VideoSceneType,
+  VideoTransitionEffect,
   VideoVisibility,
   VideoWatermark,
   WatermarkPosition,
@@ -224,6 +236,134 @@ export const WATERMARK_TEXT_STYLES: { id: WatermarkStyle; label: string; desc: s
   { id: 'outline', label: 'Outlined', desc: 'Bordered athletic badge with translucency' },
 ];
 
+export const BUILTIN_SOUND_EFFECTS: SoundEffectItem[] = [
+  {
+    id: 'sfx_whoosh',
+    name: 'Air Whoosh',
+    category: 'Whoosh',
+    icon: '💨',
+    duration: 0.8,
+    description: 'Crisp whip whoosh for swift clip transitions',
+  },
+  {
+    id: 'sfx_bass_drop',
+    name: 'Sub Bass Drop',
+    category: 'Impact',
+    icon: '🔊',
+    duration: 1.8,
+    description: 'Heavy 808 sub-bass boom with resonant rumble',
+  },
+  {
+    id: 'sfx_cyber_zap',
+    name: 'Cyber Zap',
+    category: 'Cinematic',
+    icon: '⚡',
+    duration: 0.6,
+    description: 'High-voltage laser arc and futuristic sweep',
+  },
+  {
+    id: 'sfx_crowd_cheer',
+    name: 'Crowd Applause',
+    category: 'Crowd',
+    icon: '👏',
+    duration: 2.5,
+    description: 'Enthusiastic audience cheering and celebration',
+  },
+  {
+    id: 'sfx_tension_rise',
+    name: 'Tension Riser',
+    category: 'Impact',
+    icon: '📈',
+    duration: 1.5,
+    description: 'Dramatic white noise swell and building pitch',
+  },
+  {
+    id: 'sfx_shutter',
+    name: 'Camera Shutter',
+    category: 'Whoosh',
+    icon: '📸',
+    duration: 0.5,
+    description: 'Mechanical studio DSLR shutter snap click',
+  },
+];
+
+export const VIDEO_TRANSITIONS: {
+  id: VideoTransitionEffect;
+  label: string;
+  badge: string;
+  description: string;
+  icon: string;
+}[] = [
+  { id: 'none', label: 'Direct Cut', badge: 'RAW', description: 'Instant seamless frame switch without transition', icon: '✂️' },
+  { id: 'fade', label: 'Dip to Black', badge: 'CINEMA', description: 'Classic theatrical fade through deep black', icon: '🎬' },
+  { id: 'dissolve', label: 'Cross Dissolve', badge: 'DREAM', description: 'Soft blurred cross-dissolve between clip boundaries', icon: '🌫️' },
+  { id: 'slide-left', label: 'Slide Left', badge: 'PUSH', description: 'Dynamic horizon push transitioning from right to left', icon: '⬅️' },
+  { id: 'slide-right', label: 'Slide Right', badge: 'PUSH', description: 'Smooth action slide transitioning from left to right', icon: '➡️' },
+  { id: 'zoom', label: 'Zoom Punch', badge: 'ENERGY', description: 'Dramatic camera focal scale punch transition', icon: '🔍' },
+  { id: 'glitch', label: 'Cyber Glitch', badge: 'NEON', description: 'Pixel dislocation, scanlines & RGB chromatic split', icon: '👾' },
+  { id: 'flash', label: 'Strobe Flash', badge: 'FLASH', description: 'High-intensity white exposure strobe flash', icon: '⚡' },
+];
+
+export const SPEED_PRESETS = [
+  { val: 0.25, label: '0.25x', desc: 'Ultra Slow-Mo' },
+  { val: 0.5, label: '0.5x', desc: 'Slow Motion' },
+  { val: 0.75, label: '0.75x', desc: 'Relaxed' },
+  { val: 1.0, label: '1.0x', desc: 'Normal' },
+  { val: 1.25, label: '1.25x', desc: 'Brisk' },
+  { val: 1.5, label: '1.5x', desc: 'Fast' },
+  { val: 2.0, label: '2.0x', desc: 'Hyper-Speed' },
+];
+
+export function playSfxAudioPreview(sfxId: string) {
+  const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+  if (!AudioCtx) return;
+  try {
+    const ctx = new AudioCtx();
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    if (sfxId === 'sfx_bass_drop') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(140, now);
+      osc.frequency.exponentialRampToValueAtTime(36, now + 1.2);
+      gain.gain.setValueAtTime(0.4, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
+    } else if (sfxId === 'sfx_whoosh') {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(320, now);
+      osc.frequency.exponentialRampToValueAtTime(80, now + 0.4);
+      gain.gain.setValueAtTime(0.28, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+    } else if (sfxId === 'sfx_cyber_zap') {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(900, now);
+      osc.frequency.exponentialRampToValueAtTime(160, now + 0.35);
+      gain.gain.setValueAtTime(0.25, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+    } else if (sfxId === 'sfx_shutter') {
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(1200, now);
+      osc.frequency.exponentialRampToValueAtTime(120, now + 0.15);
+      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+    } else {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(380, now);
+      osc.frequency.exponentialRampToValueAtTime(760, now + 0.4);
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+    }
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 1.5);
+  } catch {
+    // Non-blocking preview error
+  }
+}
+
 export const CreateVideoView: React.FC<CreateVideoViewProps> = ({
   currentUser,
   sounds,
@@ -268,6 +408,21 @@ export const CreateVideoView: React.FC<CreateVideoViewProps> = ({
   const [trimEnd, setTrimEnd] = useState<number>(15);
   const [currentPlayheadTime, setCurrentPlayheadTime] = useState<number>(0);
   const [isTrimLocked, setIsTrimLocked] = useState<boolean>(false);
+
+  // Playback speed control (e.g. 0.25x, 0.5x, 1x, 1.5x, 2x)
+  const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.0);
+
+  // Volume & custom audio overlay / sound effects
+  const [clipVolume, setClipVolume] = useState<number>(100);
+  const [bgMusicVolume, setBgMusicVolume] = useState<number>(80);
+  const [customAudioUrl, setCustomAudioUrl] = useState<string | undefined>(undefined);
+  const [customAudioName, setCustomAudioName] = useState<string | null>(null);
+  const [selectedSfxId, setSelectedSfxId] = useState<string | null>(null);
+  const audioFileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Video transition effect
+  const [transitionEffect, setTransitionEffect] = useState<VideoTransitionEffect>('none');
+  const [transitionDuration, setTransitionDuration] = useState<number>(0.5);
 
   const [visibility, setVisibility] = useState<VideoVisibility>('public');
   const [previewMuted, setPreviewMuted] = useState<boolean>(false);
@@ -458,6 +613,14 @@ export const CreateVideoView: React.FC<CreateVideoViewProps> = ({
       trimStart,
       trimEnd,
       duration: finalDuration,
+      playbackSpeed,
+      clipVolume,
+      bgMusicVolume,
+      customAudioUrl,
+      customAudioName: customAudioName || undefined,
+      soundEffectId: selectedSfxId || undefined,
+      transitionEffect,
+      transitionDuration,
       visibility,
       likes: [],
       saves: [],
@@ -468,6 +631,27 @@ export const CreateVideoView: React.FC<CreateVideoViewProps> = ({
     };
 
     onPublishVideo(newVideo);
+  };
+
+  const handleCustomAudioUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const result = event.target?.result as string;
+      setCustomAudioUrl(result);
+      setCustomAudioName(file.name);
+      setSelectedSfxId(null);
+      setStatusBanner(`Custom audio overlay "${file.name}" loaded!`);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleApplySfx = (sfx: SoundEffectItem) => {
+    playSfxAudioPreview(sfx.id);
+    setSelectedSfxId(sfx.id);
+    setCustomAudioName(`SFX: ${sfx.name}`);
+    setStatusBanner(`Applied Sound Effect "${sfx.name}" ${sfx.icon} to video overlay!`);
   };
 
   const handleWatermarkImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -509,6 +693,14 @@ export const CreateVideoView: React.FC<CreateVideoViewProps> = ({
       watermark: watermark.type !== 'none' ? watermark : undefined,
       trimStart,
       trimEnd,
+      playbackSpeed,
+      clipVolume,
+      bgMusicVolume,
+      customAudioUrl,
+      customAudioName: customAudioName || undefined,
+      soundEffectId: selectedSfxId || undefined,
+      transitionEffect,
+      transitionDuration,
       visibility,
       updatedAt: new Date().toISOString(),
     };
@@ -524,6 +716,16 @@ export const CreateVideoView: React.FC<CreateVideoViewProps> = ({
     setSceneType(d.sceneType);
     setUploadedUrl(d.videoUrl);
     setFilter(d.filter);
+    if (d.playbackSpeed) setPlaybackSpeed(d.playbackSpeed);
+    if (d.clipVolume !== undefined) setClipVolume(d.clipVolume);
+    if (d.bgMusicVolume !== undefined) setBgMusicVolume(d.bgMusicVolume);
+    if (d.customAudioUrl) {
+      setCustomAudioUrl(d.customAudioUrl);
+      setCustomAudioName(d.customAudioName || 'Custom Audio Track');
+    }
+    if (d.soundEffectId) setSelectedSfxId(d.soundEffectId);
+    if (d.transitionEffect) setTransitionEffect(d.transitionEffect);
+    if (d.transitionDuration) setTransitionDuration(d.transitionDuration);
     if (d.watermark) {
       setWatermark(d.watermark);
     } else {
@@ -653,6 +855,12 @@ export const CreateVideoView: React.FC<CreateVideoViewProps> = ({
                   trimStart={trimStart}
                   trimEnd={trimEnd}
                   duration={rawDuration}
+                  playbackSpeed={playbackSpeed}
+                  clipVolume={clipVolume}
+                  bgMusicVolume={bgMusicVolume}
+                  customAudioUrl={customAudioUrl}
+                  transitionEffect={transitionEffect}
+                  transitionDuration={transitionDuration}
                   onTimeUpdate={(t) => setCurrentPlayheadTime(Math.round(t * 10) / 10)}
                 />
               )}
@@ -1751,6 +1959,463 @@ export const CreateVideoView: React.FC<CreateVideoViewProps> = ({
                           </button>
                         ))}
                       </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 1. Playback Speed Control Studio Card */}
+            <div className="p-5 rounded-2xl bg-white dark:bg-[#151515] border border-slate-200 dark:border-white/10 space-y-4 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-200 dark:border-white/10">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/15 text-amber-500 flex items-center justify-center">
+                    <Gauge className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-bold text-sm flex items-center gap-2">
+                      <span>Clip Playback Speed</span>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold bg-amber-500/15 text-amber-500 border border-amber-500/20">
+                        {playbackSpeed}x Speed
+                      </span>
+                    </h3>
+                    <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+                      Adjust clip playback speed before publishing (0.25x slow-mo to 2.0x hyper-speed).
+                    </p>
+                  </div>
+                </div>
+
+                {playbackSpeed !== 1 && (
+                  <button
+                    type="button"
+                    onClick={() => setPlaybackSpeed(1.0)}
+                    className="self-start sm:self-auto px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-xs font-semibold text-slate-600 dark:text-zinc-300 flex items-center gap-1 transition-colors cursor-pointer"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    <span>Reset 1.0x</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Slider & Presets */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-slate-600 dark:text-zinc-300">
+                    Speed Multiplier Slider
+                  </span>
+                  <span className="font-mono font-bold text-amber-500">
+                    {playbackSpeed.toFixed(2)}x
+                  </span>
+                </div>
+
+                <input
+                  type="range"
+                  min={0.25}
+                  max={2.0}
+                  step={0.05}
+                  value={playbackSpeed}
+                  onChange={(e) => setPlaybackSpeed(parseFloat(e.target.value) || 1.0)}
+                  className="w-full accent-amber-500 cursor-pointer"
+                />
+
+                <div className="flex justify-between text-[10px] font-mono text-slate-400">
+                  <span>0.25x (Slowest)</span>
+                  <span>1.0x (Original)</span>
+                  <span>2.0x (Fastest)</span>
+                </div>
+
+                {/* Quick Speed Preset Buttons */}
+                <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                  <span className="text-[10px] text-slate-400 mr-1 font-medium">Quick Presets:</span>
+                  {SPEED_PRESETS.map((preset) => {
+                    const isSelected = Math.abs(playbackSpeed - preset.val) < 0.04;
+                    return (
+                      <button
+                        key={preset.val}
+                        type="button"
+                        onClick={() => setPlaybackSpeed(preset.val)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-amber-500 text-black shadow-sm font-bold ring-2 ring-amber-500/30'
+                            : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-white/15'
+                        }`}
+                      >
+                        {preset.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Duration Calculation Insight */}
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#0c0c0c] border border-slate-200 dark:border-white/5 flex items-center justify-between text-[11px]">
+                  <span className="text-slate-500 dark:text-zinc-400">
+                    Raw trimmed length: <strong className="text-slate-700 dark:text-zinc-200">{activeClipLength.toFixed(1)}s</strong>
+                  </span>
+                  <span className="font-mono font-bold text-amber-500">
+                    Effective Playback: {(activeClipLength / playbackSpeed).toFixed(1)}s
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. Audio Volume & Background Music / Sound Effects Overlay Card */}
+            <div className="p-5 rounded-2xl bg-white dark:bg-[#151515] border border-slate-200 dark:border-white/10 space-y-4 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-200 dark:border-white/10">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-[#8B5CF6]/15 text-[#8B5CF6] flex items-center justify-center">
+                    <Volume2 className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-bold text-sm flex items-center gap-2">
+                      <span>Volume & Audio Overlay Studio</span>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold bg-[#8B5CF6]/15 text-[#8B5CF6] border border-[#8B5CF6]/20">
+                        Dual Audio Engine
+                      </span>
+                    </h3>
+                    <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+                      Balance original clip sound, control volume, or overlay custom background music and sound effects.
+                    </p>
+                  </div>
+                </div>
+
+                {(clipVolume !== 100 || bgMusicVolume !== 80 || customAudioUrl) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setClipVolume(100);
+                      setBgMusicVolume(80);
+                      setCustomAudioUrl(undefined);
+                      setCustomAudioName(null);
+                      setSelectedSfxId(null);
+                      if (audioFileInputRef.current) audioFileInputRef.current.value = '';
+                    }}
+                    className="self-start sm:self-auto px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-xs font-semibold text-slate-600 dark:text-zinc-300 flex items-center gap-1 transition-colors cursor-pointer"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    <span>Reset Audio</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Dual Volume Sliders Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Clip Original Volume Slider */}
+                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#0c0c0c] border border-slate-200 dark:border-white/5 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-1.5 font-bold text-slate-700 dark:text-zinc-200">
+                      {clipVolume === 0 ? (
+                        <VolumeX className="w-3.5 h-3.5 text-red-500" />
+                      ) : (
+                        <Volume2 className="w-3.5 h-3.5 text-[#8B5CF6]" />
+                      )}
+                      <span>Original Clip Sound</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-bold text-[#8B5CF6]">{clipVolume}%</span>
+                      <button
+                        type="button"
+                        onClick={() => setClipVolume((v) => (v === 0 ? 100 : 0))}
+                        className="text-[10px] text-slate-400 hover:text-white underline cursor-pointer"
+                      >
+                        {clipVolume === 0 ? 'Unmute' : 'Mute'}
+                      </button>
+                    </div>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={150}
+                    step={5}
+                    value={clipVolume}
+                    onChange={(e) => setClipVolume(parseInt(e.target.value, 10) || 0)}
+                    className="w-full accent-[#8B5CF6] cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[10px] font-mono text-slate-400">
+                    <span>0% (Muted)</span>
+                    <span>100% (Normal)</span>
+                    <span>150% (Boost)</span>
+                  </div>
+                </div>
+
+                {/* Background Music / SFX Volume Slider */}
+                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#0c0c0c] border border-slate-200 dark:border-white/5 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-1.5 font-bold text-slate-700 dark:text-zinc-200">
+                      {bgMusicVolume === 0 ? (
+                        <VolumeX className="w-3.5 h-3.5 text-red-500" />
+                      ) : (
+                        <Disc className="w-3.5 h-3.5 text-[#FF2D75]" />
+                      )}
+                      <span>Background Music & SFX</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-bold text-[#FF2D75]">{bgMusicVolume}%</span>
+                      <button
+                        type="button"
+                        onClick={() => setBgMusicVolume((v) => (v === 0 ? 80 : 0))}
+                        className="text-[10px] text-slate-400 hover:text-white underline cursor-pointer"
+                      >
+                        {bgMusicVolume === 0 ? 'Unmute' : 'Mute'}
+                      </button>
+                    </div>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={150}
+                    step={5}
+                    value={bgMusicVolume}
+                    onChange={(e) => setBgMusicVolume(parseInt(e.target.value, 10) || 0)}
+                    className="w-full accent-[#FF2D75] cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[10px] font-mono text-slate-400">
+                    <span>0% (Muted)</span>
+                    <span>80% (Sweet Spot)</span>
+                    <span>150% (High)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Custom Audio File Upload Overlay */}
+              <div className="space-y-2 pt-2 border-t border-slate-200 dark:border-white/10">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-700 dark:text-zinc-200 flex items-center gap-1.5">
+                    <FileAudio className="w-3.5 h-3.5 text-emerald-500" />
+                    <span>Overlay Custom Music Track (.mp3 / .wav / .m4a)</span>
+                  </label>
+                  {customAudioUrl && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCustomAudioUrl(undefined);
+                        setCustomAudioName(null);
+                        if (audioFileInputRef.current) audioFileInputRef.current.value = '';
+                      }}
+                      className="text-[11px] text-red-500 hover:underline cursor-pointer"
+                    >
+                      Remove Custom Audio
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <label className="flex-1 px-4 py-2.5 rounded-xl border-2 border-dashed border-slate-200 dark:border-white/15 hover:border-[#8B5CF6] dark:hover:border-[#8B5CF6] bg-slate-50 dark:bg-[#0c0c0c] text-xs flex items-center justify-between cursor-pointer transition-colors">
+                    <div className="flex items-center gap-2 truncate">
+                      <Upload className="w-4 h-4 text-[#8B5CF6] shrink-0" />
+                      <span className="truncate text-slate-600 dark:text-zinc-300">
+                        {customAudioName ? `Active Audio: ${customAudioName}` : 'Choose audio file from device...'}
+                      </span>
+                    </div>
+                    <span className="px-2 py-0.5 rounded bg-slate-200 dark:bg-white/10 text-[10px] font-semibold text-slate-600 dark:text-zinc-300 shrink-0">
+                      Browse
+                    </span>
+                    <input
+                      ref={audioFileInputRef}
+                      type="file"
+                      accept="audio/*,.mp3,.wav,.m4a,.aac"
+                      onChange={handleCustomAudioUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {/* Sound Effects Library Cards */}
+              <div className="space-y-2 pt-2 border-t border-slate-200 dark:border-white/10">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-700 dark:text-zinc-200 flex items-center gap-1.5">
+                    <Zap className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Sound Effects Quick Overlay</span>
+                  </span>
+                  <span className="text-[10px] font-mono text-slate-400">
+                    {BUILTIN_SOUND_EFFECTS.length} FX Available
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {BUILTIN_SOUND_EFFECTS.map((sfx) => {
+                    const isSelected = selectedSfxId === sfx.id;
+                    return (
+                      <div
+                        key={sfx.id}
+                        className={`p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all ${
+                          isSelected
+                            ? 'border-[#FF2D75] bg-[#FF2D75]/15 ring-2 ring-[#FF2D75]/30'
+                            : 'border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-[#0e0e0e]'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-base">{sfx.icon}</span>
+                          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-zinc-400 font-semibold">
+                            {sfx.duration}s
+                          </span>
+                        </div>
+                        <div>
+                          <div className="font-bold text-xs truncate">{sfx.name}</div>
+                          <div className="text-[10px] text-slate-500 dark:text-zinc-400 truncate">
+                            {sfx.description}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 mt-2">
+                          <button
+                            type="button"
+                            onClick={() => playSfxAudioPreview(sfx.id)}
+                            className="flex-1 py-1 rounded bg-slate-200/80 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/20 text-[10px] font-semibold flex items-center justify-center gap-1 cursor-pointer"
+                            title="Listen to preview sound effect"
+                          >
+                            <Play className="w-2.5 h-2.5 fill-current" />
+                            <span>Preview</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleApplySfx(sfx)}
+                            className={`py-1 px-2 rounded text-[10px] font-semibold cursor-pointer ${
+                              isSelected
+                                ? 'bg-[#FF2D75] text-white'
+                                : 'bg-[#8B5CF6]/15 hover:bg-[#8B5CF6]/25 text-[#8B5CF6]'
+                            }`}
+                          >
+                            {isSelected ? 'Applied' : 'Apply'}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Video Transitions Studio Card */}
+            <div className="p-5 rounded-2xl bg-white dark:bg-[#151515] border border-slate-200 dark:border-white/10 space-y-4 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-200 dark:border-white/10">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#8B5CF6] to-[#FF2D75] text-white flex items-center justify-center shadow-sm">
+                    <ArrowRightLeft className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-bold text-sm flex items-center gap-2">
+                      <span>Video Transitions</span>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold bg-[#8B5CF6]/15 text-[#8B5CF6] border border-[#8B5CF6]/20">
+                        {VIDEO_TRANSITIONS.find((t) => t.id === transitionEffect)?.label || 'Direct Cut'}
+                      </span>
+                    </h3>
+                    <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+                      Apply cinematic transition effects (Fade, Dissolve, Slide, Zoom, Glitch) between joined clips or clip start.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 self-start sm:self-auto">
+                  {transitionEffect !== 'none' && (
+                    <button
+                      type="button"
+                      onClick={() => setTransitionEffect('none')}
+                      className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-xs font-semibold text-slate-600 dark:text-zinc-300 flex items-center gap-1 transition-colors cursor-pointer"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      <span>Cut (None)</span>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCurrentPlayheadTime(trimStart);
+                      setStatusBanner(`Previewing "${VIDEO_TRANSITIONS.find((t) => t.id === transitionEffect)?.label}" transition...`);
+                    }}
+                    className="px-3 py-1 rounded-lg bg-gradient-to-r from-[#8B5CF6] to-[#FF2D75] text-white text-xs font-semibold flex items-center gap-1 cursor-pointer shadow-sm hover:opacity-95"
+                  >
+                    <Play className="w-3 h-3 fill-current" />
+                    <span>Test Transition</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Transition Cards Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                {VIDEO_TRANSITIONS.map((trans) => {
+                  const isSelected = transitionEffect === trans.id;
+                  return (
+                    <button
+                      key={trans.id}
+                      type="button"
+                      onClick={() => {
+                        setTransitionEffect(trans.id);
+                        setCurrentPlayheadTime(trimStart);
+                      }}
+                      className={`p-3 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer group ${
+                        isSelected
+                          ? 'border-[#8B5CF6] bg-[#8B5CF6]/15 ring-2 ring-[#8B5CF6]/30 shadow-md'
+                          : 'border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-[#0e0e0e] hover:border-slate-400 dark:hover:border-white/25 hover:bg-slate-100 dark:hover:bg-white/5'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xl group-hover:scale-110 transition-transform">{trans.icon}</span>
+                        <span
+                          className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${
+                            isSelected
+                              ? 'bg-[#8B5CF6] text-white'
+                              : 'bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-zinc-400'
+                          }`}
+                        >
+                          {trans.badge}
+                        </span>
+                      </div>
+                      <div>
+                        <div className="font-display font-bold text-xs truncate flex items-center justify-between">
+                          <span>{trans.label}</span>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-[#8B5CF6] stroke-[3]" />}
+                        </div>
+                        <div className="text-[10px] text-slate-500 dark:text-zinc-400 line-clamp-2 mt-0.5 leading-tight">
+                          {trans.description}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Transition Duration Control (When transition != 'none') */}
+              {transitionEffect !== 'none' && (
+                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#0c0c0c] border border-slate-200 dark:border-white/5 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-slate-700 dark:text-zinc-200 flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-[#8B5CF6]" />
+                      <span>Transition Duration</span>
+                    </span>
+                    <span className="font-mono font-bold text-[#8B5CF6]">
+                      {transitionDuration.toFixed(1)}s
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0.2}
+                    max={1.5}
+                    step={0.1}
+                    value={transitionDuration}
+                    onChange={(e) => setTransitionDuration(parseFloat(e.target.value) || 0.5)}
+                    className="w-full accent-[#8B5CF6] cursor-pointer"
+                  />
+                  <div className="flex items-center justify-between">
+                    <div className="flex justify-between text-[10px] font-mono text-slate-400 w-44">
+                      <span>0.2s (Fast)</span>
+                      <span>0.5s (Smooth)</span>
+                      <span>1.5s (Long)</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {[0.3, 0.5, 0.8, 1.2].map((dur) => (
+                        <button
+                          key={dur}
+                          type="button"
+                          onClick={() => setTransitionDuration(dur)}
+                          className={`px-2 py-0.5 rounded text-[10px] font-semibold cursor-pointer ${
+                            Math.abs(transitionDuration - dur) < 0.05
+                              ? 'bg-[#8B5CF6] text-white'
+                              : 'bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-zinc-400 hover:bg-slate-300 dark:hover:bg-white/20'
+                          }`}
+                        >
+                          {dur}s
+                        </button>
+                      ))}
                     </div>
                   </div>
                 </div>

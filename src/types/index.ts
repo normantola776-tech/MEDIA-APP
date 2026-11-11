@@ -68,6 +68,25 @@ export type VideoFilterType =
 
 export type VideoVisibility = 'public' | 'followers' | 'private' | 'subscribers_only';
 
+export type VideoTransitionEffect =
+  | 'none'
+  | 'fade'
+  | 'dissolve'
+  | 'slide-left'
+  | 'slide-right'
+  | 'zoom'
+  | 'glitch'
+  | 'flash';
+
+export interface SoundEffectItem {
+  id: string;
+  name: string;
+  category: 'Impact' | 'Cinematic' | 'Whoosh' | 'Crowd' | 'Beats';
+  icon: string;
+  duration: number; // in seconds
+  description: string;
+}
+
 export type WatermarkType = 'none' | 'text' | 'image';
 
 export type WatermarkPosition =
@@ -129,6 +148,14 @@ export interface Video {
   trimStart: number; // in seconds
   trimEnd: number;   // in seconds
   duration: number;  // in seconds
+  playbackSpeed?: number; // 0.25 to 2.0x
+  clipVolume?: number; // 0 - 150% (default 100)
+  bgMusicVolume?: number; // 0 - 150% (default 80)
+  customAudioUrl?: string;
+  customAudioName?: string;
+  soundEffectId?: string;
+  transitionEffect?: VideoTransitionEffect;
+  transitionDuration?: number; // 0.2 to 1.5s
   visibility: VideoVisibility;
   likes: string[];   // user IDs
   saves: string[];   // user IDs
@@ -166,6 +193,14 @@ export interface DraftVideo {
   filter: VideoFilterType;
   trimStart: number;
   trimEnd: number;
+  playbackSpeed?: number;
+  clipVolume?: number;
+  bgMusicVolume?: number;
+  customAudioUrl?: string;
+  customAudioName?: string;
+  soundEffectId?: string;
+  transitionEffect?: VideoTransitionEffect;
+  transitionDuration?: number;
   visibility: VideoVisibility;
   watermark?: VideoWatermark;
   updatedAt: string;

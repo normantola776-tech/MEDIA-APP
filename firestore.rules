@@ -1,0 +1,110 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'normantola776@gmail.com' ||
+        request.auth.token.email == 'admin@starmedia.app'
+      );
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Test connection document for verifying Firestore connectivity
+    match /test/{docId} {
+      allow read, write: if true;
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isOwner(userId) || isAdmin();
+      allow update: if isOwner(userId) || isAdmin() || (
+        isSignedIn() && incoming().diff(existing()).affectedKeys().hasOnly(['followers', 'online', 'coinBalance'])
+      );
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+
+    // Videos Collection
+    match /videos/{videoId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn() && (incoming().creatorId == request.auth.uid || isAdmin());
+      allow update: if (isSignedIn() && existing().creatorId == request.auth.uid) || isAdmin() || (
+        isSignedIn() && incoming().diff(existing()).affectedKeys().hasOnly(['likes', 'saves', 'views', 'shares', 'commentsCount', 'giftEarningsCoins', 'giftsReceived'])
+      );
+      allow delete: if isSignedIn() && (existing().creatorId == request.auth.uid || isAdmin());
+    }
+
+    // Comments Collection
+    match /comments/{commentId} {
+      allow get, list: if true;
+      allow create: if isSignedIn() && (incoming().userId == request.auth.uid || isAdmin());
+      allow update: if (isSignedIn() && existing().userId == request.auth.uid) || isAdmin() || (
+        isSignedIn() && incoming().diff(existing()).affectedKeys().hasOnly(['likes', 'replies'])
+      );
+      allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+    }
+
+    // Direct Messages Collection
+    match /messages/{messageId} {
+      allow get, list: if isSignedIn() && (
+        resource.data.senderId == request.auth.uid ||
+        resource.data.recipientId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create: if isSignedIn() && (incoming().senderId == request.auth.uid || isAdmin());
+      allow update: if isSignedIn() && (
+        existing().senderId == request.auth.uid ||
+        existing().recipientId == request.auth.uid ||
+        isAdmin()
+      ) && incoming().diff(existing()).affectedKeys().hasOnly(['read']);
+      allow delete: if isSignedIn() && (existing().senderId == request.auth.uid || isAdmin());
+    }
+
+    // Drafts Collection
+    match /drafts/{draftId} {
+      allow get, list: if isSignedIn() && (
+        resource.data.creatorId == request.auth.uid || isAdmin()
+      );
+      allow create: if isSignedIn() && (incoming().creatorId == request.auth.uid || isAdmin());
+      allow update: if isSignedIn() && (existing().creatorId == request.auth.uid || isAdmin());
+      allow delete: if isSignedIn() && (existing().creatorId == request.auth.uid || isAdmin());
+    }
+
+    // Live Streams Collection
+    match /liveStreams/{streamId} {
+      allow get, list: if true;
+      allow create: if isSignedIn() && (incoming().creatorId == request.auth.uid || isAdmin());
+      allow update: if (isSignedIn() && existing().creatorId == request.auth.uid) || isAdmin() || (
+        incoming().diff(existing()).affectedKeys().hasOnly(['viewerCount'])
+      );
+      allow delete: if isSignedIn() && (existing().creatorId == request.auth.uid || isAdmin());
+    }
+  }
+}

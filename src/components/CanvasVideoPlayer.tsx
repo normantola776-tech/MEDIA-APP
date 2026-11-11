@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Play, Heart } from 'lucide-react';
-import { VideoFilterType, VideoSceneType, VideoWatermark } from '../types';
+import { VideoFilterType, VideoSceneType, VideoTransitionEffect, VideoWatermark } from '../types';
 import { INITIAL_SOUNDS } from '../data/seedData';
 
 interface CanvasVideoPlayerProps {
@@ -15,6 +15,12 @@ interface CanvasVideoPlayerProps {
   trimStart?: number;
   trimEnd?: number;
   duration?: number;
+  playbackSpeed?: number; // 0.25 to 2.0x
+  clipVolume?: number; // 0 to 150%
+  bgMusicVolume?: number; // 0 to 150%
+  customAudioUrl?: string;
+  transitionEffect?: VideoTransitionEffect;
+  transitionDuration?: number; // in seconds
   onTimeUpdate?: (currTime: number) => void;
   onDoubleTapLike?: () => void;
   className?: string;
@@ -218,6 +224,12 @@ export const CanvasVideoPlayer: React.FC<CanvasVideoPlayerProps> = ({
   trimStart = 0,
   trimEnd = 15,
   duration = 15,
+  playbackSpeed = 1,
+  clipVolume = 100,
+  bgMusicVolume = 80,
+  customAudioUrl,
+  transitionEffect = 'none',
+  transitionDuration = 0.5,
   onTimeUpdate,
   onDoubleTapLike,
   className = '',
@@ -226,12 +238,14 @@ export const CanvasVideoPlayer: React.FC<CanvasVideoPlayerProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const bgAudioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(isActive);
   const [progress, setProgress] = useState<number>(0);
   const [hearts, setHearts] = useState<FloatingHeart[]>([]);
   const lastTapRef = useRef<number>(0);
   const singleTapTimeoutRef = useRef<number | null>(null);
   const elapsedRef = useRef<number>(trimStart);
+  const [activeTransition, setActiveTransition] = useState<boolean>(false);
 
   // Sync play state with active feed slide
   useEffect(() => {
@@ -249,9 +263,24 @@ export const CanvasVideoPlayer: React.FC<CanvasVideoPlayerProps> = ({
     }
   }, [trimStart, trimEnd]);
 
-  // WebAudio procedural soundtrack when unmuted & playing
+  // Handle custom audio track overlay
   useEffect(() => {
-    if (!isActive || !isPlaying || isMuted || compact || videoUrl) return;
+    const audio = bgAudioRef.current;
+    if (!audio || !customAudioUrl) return;
+
+    audio.volume = isMuted ? 0 : Math.max(0, Math.min(1, (bgMusicVolume / 100)));
+    audio.playbackRate = playbackSpeed || 1;
+
+    if (isActive && isPlaying) {
+      audio.play().catch(() => {});
+    } else {
+      audio.pause();
+    }
+  }, [customAudioUrl, isActive, isPlaying, isMuted, bgMusicVolume, playbackSpeed]);
+
+  // WebAudio procedural soundtrack when unmuted & playing and no custom audio
+  useEffect(() => {
+    if (!isActive || !isPlaying || isMuted || compact || videoUrl || customAudioUrl) return;
 
     const sound = INITIAL_SOUNDS.find((s) => s.id === soundId) || INITIAL_SOUNDS[0];
     const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
@@ -263,7 +292,8 @@ export const CanvasVideoPlayer: React.FC<CanvasVideoPlayerProps> = ({
 
     try {
       ctx = new AudioCtx();
-      const beatMs = Math.max(180, Math.round((60 / sound.bpm) * 500));
+      const effectiveBpm = sound.bpm * (playbackSpeed || 1);
+      const beatMs = Math.max(120, Math.round((60 / effectiveBpm) * 500));
 
       const playStep = () => {
         if (!ctx || ctx.state === 'closed') return;
@@ -278,8 +308,9 @@ export const CanvasVideoPlayer: React.FC<CanvasVideoPlayerProps> = ({
         osc.type = step % 2 === 0 ? 'triangle' : 'sine';
         osc.frequency.setValueAtTime(freq, now);
 
+        const volScalar = Math.max(0, Math.min(1.5, (bgMusicVolume / 100)));
         gain.gain.setValueAtTime(0.001, now);
-        gain.gain.exponentialRampToValueAtTime(0.04, now + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.04 * volScalar, now + 0.03);
         gain.gain.exponentialRampToValueAtTime(0.0008, now + beatMs / 1000);
 
         osc.connect(gain);
@@ -302,7 +333,7 @@ export const CanvasVideoPlayer: React.FC<CanvasVideoPlayerProps> = ({
         ctx.close().catch(() => {});
       }
     };
-  }, [isActive, isPlaying, isMuted, soundId, compact, videoUrl]);
+  }, [isActive, isPlaying, isMuted, soundId, compact, videoUrl, customAudioUrl, playbackSpeed, bgMusicVolume]);
 
   // Handle native HTML5 <video> element if videoUrl is provided
   useEffect(() => {
@@ -310,6 +341,9 @@ export const CanvasVideoPlayer: React.FC<CanvasVideoPlayerProps> = ({
     if (!vid || !videoUrl) return;
 
     vid.muted = isMuted;
+    vid.playbackRate = playbackSpeed || 1;
+    vid.volume = Math.max(0, Math.min(1, (clipVolume / 100)));
+
     if (isActive && isPlaying) {
       if (vid.currentTime < trimStart || vid.currentTime >= trimEnd) {
         vid.currentTime = trimStart;
@@ -318,7 +352,7 @@ export const CanvasVideoPlayer: React.FC<CanvasVideoPlayerProps> = ({
     } else {
       vid.pause();
     }
-  }, [videoUrl, isActive, isPlaying, isMuted, trimStart, trimEnd]);
+  }, [videoUrl, isActive, isPlaying, isMuted, trimStart, trimEnd, playbackSpeed, clipVolume]);
 
   // Canvas procedural render loop
   useEffect(() => {
@@ -337,7 +371,7 @@ export const CanvasVideoPlayer: React.FC<CanvasVideoPlayerProps> = ({
       lastTime = now;
 
       if (isPlaying) {
-        elapsedRef.current += dt;
+        elapsedRef.current += dt * (playbackSpeed || 1);
         if (elapsedRef.current >= (trimEnd || duration)) {
           elapsedRef.current = trimStart;
         }
@@ -578,6 +612,60 @@ export const CanvasVideoPlayer: React.FC<CanvasVideoPlayerProps> = ({
           <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/70 via-black/25 to-transparent" />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-black/90 via-black/45 to-transparent" />
         </>
+      )}
+
+      {/* Custom Audio element for background music track */}
+      {customAudioUrl && (
+        <audio ref={bgAudioRef} src={customAudioUrl} loop preload="auto" />
+      )}
+
+      {/* Video Transition Effect Visual Overlay */}
+      {transitionEffect && transitionEffect !== 'none' && (
+        <div
+          className="pointer-events-none absolute inset-0 z-20 overflow-hidden"
+          style={{
+            opacity: Math.max(0, 1 - (elapsedRef.current - trimStart) / (transitionDuration || 0.6)),
+          }}
+        >
+          {transitionEffect === 'fade' && (
+            <div className="w-full h-full bg-black" />
+          )}
+          {transitionEffect === 'flash' && (
+            <div className="w-full h-full bg-white" />
+          )}
+          {transitionEffect === 'dissolve' && (
+            <div className="w-full h-full backdrop-blur-lg bg-slate-900/50" />
+          )}
+          {transitionEffect === 'slide-left' && (
+            <div className="w-full h-full bg-gradient-to-r from-black via-black/80 to-transparent" />
+          )}
+          {transitionEffect === 'slide-right' && (
+            <div className="w-full h-full bg-gradient-to-l from-black via-black/80 to-transparent" />
+          )}
+          {transitionEffect === 'zoom' && (
+            <div className="w-full h-full border-8 border-[#FF2D75]/60 bg-black/30 backdrop-blur-sm" />
+          )}
+          {transitionEffect === 'glitch' && (
+            <div className="w-full h-full bg-gradient-to-b from-[#FF2D75]/40 via-transparent to-[#00FFFF]/40 mix-blend-screen" />
+          )}
+        </div>
+      )}
+
+      {/* Floating Speed & Transition Badges */}
+      {!compact && (playbackSpeed !== 1 || (transitionEffect && transitionEffect !== 'none')) && (
+        <div className="absolute top-3.5 left-3.5 z-25 flex items-center gap-1.5 pointer-events-none">
+          {playbackSpeed !== 1 && (
+            <span className="px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-amber-400/30 text-[10px] font-bold font-mono text-amber-400 shadow-sm flex items-center gap-1">
+              <span>⚡</span>
+              <span>{playbackSpeed}x</span>
+            </span>
+          )}
+          {transitionEffect && transitionEffect !== 'none' && (
+            <span className="px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-purple-400/30 text-[10px] font-bold font-mono uppercase tracking-wider text-purple-300 shadow-sm">
+              ✨ {transitionEffect}
+            </span>
+          )}
+        </div>
       )}
 
       <VideoWatermarkOverlay watermark={watermark} compact={compact} />
